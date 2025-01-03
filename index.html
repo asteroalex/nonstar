@@ -270,12 +270,12 @@
         upgradePriceEl.textContent = upgradePrice;
         energyCount.textContent = `${energy}/5000 ⚡`;
 
-        // Восстановление энергии каждую секунду (2 молнии за секунду)
+        // Восстановление энергии каждую секунду (2 молнии каждую секунду)
         setInterval(() => {
             const timeDifference = Date.now() - lastUpdateTime;
 
-            if (timeDifference >= 1000) {
-                const energyRestored = Math.floor(timeDifference / 500); // 2 энергии каждую секунду
+            if (timeDifference >= 1000) { // каждая секунда
+                const energyRestored = 2; // добавляется 2 энергии каждую секунду
                 energy = Math.min(energy + energyRestored, maxEnergy);
                 energyCount.textContent = `${energy}/5000 ⚡`;
 
@@ -283,7 +283,7 @@
                 localStorage.setItem('energy', energy);
                 localStorage.setItem('lastUpdateTime', Date.now());
             }
-        }, 500); // Обновление каждые 500 миллисекунд
+        }, 1000); // обновление каждую секунду
 
         // Обработчик нажатия на звезду
         star.addEventListener('click', () => {
