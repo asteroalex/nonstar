@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Clicker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #000;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            height: 100vh;
+            position: relative;
+        }
+
+        .score {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-top: 20px;
+            z-index: 10;
+        }
+
+        .score img {
+            width: 30px;
+            vertical-align: middle;
+        }
+
+        .star {
+            width: 150px;
+            cursor: pointer;
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        .energy-progress {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            font-size: 1.2rem;
+            color: white;
+            z-index: 10;
+        }
+
+        .boosts-section {
+            background-color: #111;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-top: 2px solid #444;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            border-radius: 25px;
+            z-index: 20;
+        }
+
+        .boosts-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            padding: 10px;
+        }
+
+        .boosts-button .icon {
+            font-size: 2rem;
+        }
+
+        .boosts-button .text {
+            font-size: 1rem;
+            margin-top: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #222;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 20;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .modal .modal-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .modal .modal-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #333;
+            border-radius: 10px;
+        }
+
+        .modal .icon {
+            font-size: 2rem;
+            color: yellow;
+        }
+
+        .modal .text {
+            text-align: left;
+        }
+
+        .modal .text .title {
+            font-weight: bold;
+        }
+
+        .modal .text .description {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .modal .price {
+            background-color: #555;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 15;
+        }
+
+        .visible {
+            display: block;
+        }
+
+        .floating-stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .floating-stars span {
+            position: absolute;
+            background: yellow;
+            border-radius: 50%;
+            width: 10px;
+            height: 10px;
+            animation: float 2s ease-out forwards;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-200px) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        .floating-text {
+            position: absolute;
+            color: yellow;
+            font-size: 20px;
+            animation: fadeOutText 1s forwards;
+        }
+
+        @keyframes fadeOutText {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="score">
+        <span id="starCount">0</span>
+        <img src="star.png" alt="Star">
+    </div>
+    <img 
+        src="star.png" 
+        alt="Star" 
+        class="star" 
+        id="clickableStar"
+    >
+    <div class="energy-progress">
+        <span id="energyCount">5000/5000 ⚡</span>
+    </div>
+    <div class="boosts-section" id="boostsButton">
+        <div class="boosts-button">
+            <span class="icon">🚀</span>
+            <span class="text">Boosts</span>
+        </div>
+    </div>
+    <div class="overlay" id="overlay"></div>
+    <div class="modal" id="boostsModal">
+        <div class="modal-header">Upgrade Tap</div>
+        <div class="modal-content">
+            <div class="icon">⭐</div>
+            <div class="text">
+                <div class="title">Upgrade Tap</div>
+                <div class="description">+1 per level</div>
+            </div>
+            <div class="price" id="upgradePrice">128</div>
+        </div>
+    </div>
+    <div class="floating-stars" id="floatingStars"></div>
+
+    <script>
+        const star = document.getElementById('clickableStar');
+        const starCount = document.getElementById('starCount');
+        const energyCount = document.getElementById('energyCount');
+        const boostsButton = document.getElementById('boostsButton');
+        const boostsModal = document.getElementById('boostsModal');
+        const overlay = document.getElementById('overlay');
+        const upgradePriceEl = document.getElementById('upgradePrice');
+        const floatingStars = document.getElementById('floatingStars');
+
+        const maxEnergy = 5000;
+        let energy = parseInt(localStorage.getItem('energy')) || maxEnergy;
+        let count = parseInt(localStorage.getItem('starCount')) || 0;
+        let upgradeLevel = parseInt(localStorage.getItem('upgradeLevel')) || 1;
+        let upgradePrice = parseInt(localStorage.getItem('upgradePrice')) || 128;
+
+        // Обновление UI
+        starCount.textContent = count;
+        upgradePriceEl.textContent = upgradePrice;
+        energyCount.textContent = `${energy}/5000 ⚡`;
+
+        // Функция для восстановления энергии
+        function restoreEnergy() {
+            // Проверяем, сколько времени прошло с последнего обновления энергии
+            const lastTime = parseInt(localStorage.getItem('lastTime')) || Date.now();
+            const elapsed = Date.now() - lastTime;
+            const energyGained = Math.floor(elapsed / 2000) * 2; // Восстановление по 2 энергии каждые 2 секунды
+            energy = Math.min(maxEnergy, energy + energyGained);
+            energyCount.textContent = `${energy}/5000 ⚡`;
+            localStorage.setItem('energy', energy);
+            localStorage.setItem('lastTime', Date.now());
+        }
+
+        // Восстановление энергии при загрузке
+        restoreEnergy();
+
+        // Восстановление энергии каждую секунду на странице
+        setInterval(() => {
+            restoreEnergy();
+        }, 1000);
+
+        // Добавляем слушатель событий для видимости вкладки
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Когда вкладка скрыта, ничего не делать, энергия продолжит восстанавливаться в фоне
+            } else {
+                // Когда вкладка активна, восстанавливать энергию
+                restoreEnergy();
+            }
+        });
+
+        // Событие для клика по звезде
+        star.addEventListener('click', () => {
+            if (energy >= upgradeLevel) {
+                count += upgradeLevel;
+                starCount.textContent = count;
+                energy -= upgradeLevel; // Тратится энергия за клик
+                energyCount.textContent = `${energy}/5000 ⚡`;
+
+                // Сохранение прогресса
+                localStorage.setItem('starCount', count);
+                localStorage.setItem('energy', energy);
+
+                // Создание маленьких звездочек
+                createFloatingStars();
+
+                // Создание текста для отображения монет
+                createFloatingText(`+${upgradeLevel}`);
+            }
+        });
+
+        // Функция создания анимации для маленьких звездочек
+        function createFloatingStars() {
+            for (let i = 0; i < 5; i++) {
+                const starElement = document.createElement('span');
+                const size = Math.random() * 3 + 5;
+                const xPos = Math.random() * window.innerWidth;
+                starElement.style.width = `${size}px`;
+                starElement.style.height = `${size}px`;
+                starElement.style.left = `${xPos}px`;
+                starElement.style.top = `${window.innerHeight}px`;
+                floatingStars.appendChild(starElement);
+                setTimeout(() => {
+                    floatingStars.removeChild(starElement);
+                }, 2000);
+            }
+        }
+
+        // Функция для отображения текста +1
+        function createFloatingText(text) {
+            const textElement = document.createElement('div');
+            textElement.textContent = text;
+            textElement.classList.add('floating-text');
+            textElement.style.left = `${Math.random() * window.innerWidth}px`;
+            textElement.style.top = `${Math.random() * window.innerHeight}px`;
+            document.body.appendChild(textElement);
+            setTimeout(() => {
+                document.body.removeChild(textElement);
+            }, 1000);
+        }
+
+        // Открытие модального окна для бустов
+        boostsButton.addEventListener('click', () => {
+            if (upgradeLevel >= 10) {
+                upgradePriceEl.textContent = "Maximum level";
+            } else {
+                boostsModal.classList.add('visible');
+                overlay.classList.add('visible');
+            }
+        });
+
+        // Закрытие модального окна
+        overlay.addEventListener('click', () => {
+            boostsModal.classList.remove('visible');
+            overlay.classList.remove('visible');
+        });
+
+        // Обработчик улучшения
+        boostsModal.addEventListener('click', () => {
+            if (upgradeLevel < 10) {
+                if (count >= upgradePrice && energy >= upgradeLevel) {
+                    count -= upgradePrice;
+                    upgradeLevel++;
+                    energy -= upgradeLevel; // Тратится энергия на улучшение
+
+                    // Стоимость улучшения удваивается
+                    upgradePrice *= 2;
+
+                    // Обновление UI и сохранение прогресса
+                    starCount.textContent = count;
+                    upgradePriceEl.textContent = upgradePrice;
+                    energyCount.textContent = `${energy}/5000 ⚡`;
+
+                    localStorage.setItem('starCount', count);
+                    localStorage.setItem('upgradeLevel', upgradeLevel);
+                    localStorage.setItem('energy', energy);
+                    localStorage.setItem('upgradePrice', upgradePrice);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
