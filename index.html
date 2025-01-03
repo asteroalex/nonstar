@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Star Clicker</title>
     <style>
         body {
@@ -273,10 +273,18 @@
 
         // Восстановление энергии каждые 2 секунды
         setInterval(() => {
-            if (energy < maxEnergy) {
-                energy = Math.min(energy + 2, maxEnergy);
+            // Проверяем, сколько времени прошло с последнего обновления
+            const lastUpdateTime = parseInt(localStorage.getItem('lastUpdateTime')) || Date.now();
+            const timeDifference = Date.now() - lastUpdateTime;
+            
+            if (timeDifference > 2000) { // Восстановление энергии каждые 2 секунды
+                const energyRestored = Math.floor(timeDifference / 2000) * 2; // 2 энергии за каждые 2 секунды
+                energy = Math.min(energy + energyRestored, maxEnergy);
                 energyCount.textContent = `${energy}/5000 ⚡`;
+
+                // Сохранение энергии и времени последнего обновления
                 localStorage.setItem('energy', energy);
+                localStorage.setItem('lastUpdateTime', Date.now());
             }
         }, 2000);
 
