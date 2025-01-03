@@ -34,7 +34,7 @@
         }
 
         .star {
-            width: 300px;  /* Увеличил размер звезды */
+            width: 300px;
             cursor: pointer;
             transition: transform 0.1s ease-out;
             position: absolute;
@@ -44,9 +44,8 @@
             z-index: 10;
         }
 
-        /* Эффект нажатия звезды */
         .star:active {
-            transform: scale(0.9); /* Звезда становится немного меньше */
+            transform: scale(0.9);
         }
 
         .energy-progress {
@@ -205,7 +204,6 @@
             }
         }
 
-        /* Progress bar for energy at bottom left */
         .energy-progress {
             position: absolute;
             left: 20px;
@@ -265,20 +263,19 @@
         let count = parseInt(localStorage.getItem('starCount')) || 0;
         let upgradeLevel = parseInt(localStorage.getItem('upgradeLevel')) || 1;
         let upgradePrice = parseInt(localStorage.getItem('upgradePrice')) || 128;
+        let lastUpdateTime = parseInt(localStorage.getItem('lastUpdateTime')) || Date.now();
 
         // Обновление UI
         starCount.textContent = count;
         upgradePriceEl.textContent = upgradePrice;
         energyCount.textContent = `${energy}/5000 ⚡`;
 
-        // Восстановление энергии каждые 2 секунды
+        // Восстановление энергии каждую секунду (2 молнии за секунду)
         setInterval(() => {
-            // Проверяем, сколько времени прошло с последнего обновления
-            const lastUpdateTime = parseInt(localStorage.getItem('lastUpdateTime')) || Date.now();
             const timeDifference = Date.now() - lastUpdateTime;
-            
-            if (timeDifference > 2000) { // Восстановление энергии каждые 2 секунды
-                const energyRestored = Math.floor(timeDifference / 2000) * 2; // 2 энергии за каждые 2 секунды
+
+            if (timeDifference >= 1000) {
+                const energyRestored = Math.floor(timeDifference / 500); // 2 энергии каждую секунду
                 energy = Math.min(energy + energyRestored, maxEnergy);
                 energyCount.textContent = `${energy}/5000 ⚡`;
 
@@ -286,17 +283,16 @@
                 localStorage.setItem('energy', energy);
                 localStorage.setItem('lastUpdateTime', Date.now());
             }
-        }, 2000);
+        }, 500); // Обновление каждые 500 миллисекунд
 
-        // Клик по звезде
+        // Обработчик нажатия на звезду
         star.addEventListener('click', () => {
             if (energy >= upgradeLevel) {
                 count += upgradeLevel;
                 starCount.textContent = count;
-                energy -= upgradeLevel; // Тратится энергия за клик
+                energy -= upgradeLevel;
                 energyCount.textContent = `${energy}/5000 ⚡`;
 
-                // Сохранение энергии
                 localStorage.setItem('starCount', count);
                 localStorage.setItem('energy', energy);
 
@@ -306,7 +302,7 @@
             }
         });
 
-        // Функция создания анимации для звезды
+        // Создание анимации для звезды
         function createFloatingStar() {
             const starElement = document.createElement('span');
             const size = Math.random() * 3 + 5;
