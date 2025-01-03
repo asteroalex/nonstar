@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Star Clicker</title>
     <style>
         body {
@@ -257,37 +257,16 @@
         upgradePriceEl.textContent = upgradePrice;
         energyCount.textContent = `${energy}/5000 ⚡`;
 
-        // Функция для восстановления энергии
-        function restoreEnergy() {
-            // Проверяем, сколько времени прошло с последнего обновления энергии
-            const lastTime = parseInt(localStorage.getItem('lastTime')) || Date.now();
-            const elapsed = Date.now() - lastTime;
-            const energyGained = Math.floor(elapsed / 2000) * 2; // Восстановление по 2 энергии каждые 2 секунды
-            energy = Math.min(maxEnergy, energy + energyGained);
-            energyCount.textContent = `${energy}/5000 ⚡`;
-            localStorage.setItem('energy', energy);
-            localStorage.setItem('lastTime', Date.now());
-        }
-
-        // Восстановление энергии при загрузке
-        restoreEnergy();
-
-        // Восстановление энергии каждую секунду на странице
+        // Восстановление энергии каждые 2 секунды
         setInterval(() => {
-            restoreEnergy();
-        }, 1000);
-
-        // Добавляем слушатель событий для видимости вкладки
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                // Когда вкладка скрыта, ничего не делать, энергия продолжит восстанавливаться в фоне
-            } else {
-                // Когда вкладка активна, восстанавливать энергию
-                restoreEnergy();
+            if (energy < maxEnergy) {
+                energy = Math.min(energy + 2, maxEnergy);
+                energyCount.textContent = `${energy}/5000 ⚡`;
+                localStorage.setItem('energy', energy);
             }
-        });
+        }, 2000);
 
-        // Событие для клика по звезде
+        // Клик по звезде
         star.addEventListener('click', () => {
             if (energy >= upgradeLevel) {
                 count += upgradeLevel;
@@ -295,33 +274,29 @@
                 energy -= upgradeLevel; // Тратится энергия за клик
                 energyCount.textContent = `${energy}/5000 ⚡`;
 
-                // Сохранение прогресса
+                // Сохранение энергии
                 localStorage.setItem('starCount', count);
                 localStorage.setItem('energy', energy);
 
-                // Создание маленьких звездочек
-                createFloatingStars();
-
-                // Создание текста для отображения монет
+                // Создание анимации для звезды
+                createFloatingStar();
                 createFloatingText(`+${upgradeLevel}`);
             }
         });
 
-        // Функция создания анимации для маленьких звездочек
-        function createFloatingStars() {
-            for (let i = 0; i < 5; i++) {
-                const starElement = document.createElement('span');
-                const size = Math.random() * 3 + 5;
-                const xPos = Math.random() * window.innerWidth;
-                starElement.style.width = `${size}px`;
-                starElement.style.height = `${size}px`;
-                starElement.style.left = `${xPos}px`;
-                starElement.style.top = `${window.innerHeight}px`;
-                floatingStars.appendChild(starElement);
-                setTimeout(() => {
-                    floatingStars.removeChild(starElement);
-                }, 2000);
-            }
+        // Функция создания анимации для звезды
+        function createFloatingStar() {
+            const starElement = document.createElement('span');
+            const size = Math.random() * 3 + 5;
+            const xPos = Math.random() * window.innerWidth;
+            starElement.style.width = `${size}px`;
+            starElement.style.height = `${size}px`;
+            starElement.style.left = `${xPos}px`;
+            starElement.style.top = `${window.innerHeight}px`;
+            floatingStars.appendChild(starElement);
+            setTimeout(() => {
+                floatingStars.removeChild(starElement);
+            }, 2000);
         }
 
         // Функция для отображения текста +1
