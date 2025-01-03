@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Star Clicker</title>
     <style>
         body {
@@ -34,13 +34,19 @@
         }
 
         .star {
-            width: 150px;
+            width: 300px;  /* Увеличил размер звезды */
             cursor: pointer;
+            transition: transform 0.1s ease-out;
             position: absolute;
             top: 30%;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
+        }
+
+        /* Эффект нажатия звезды */
+        .star:active {
+            transform: scale(0.9); /* Звезда становится немного меньше */
         }
 
         .energy-progress {
@@ -72,7 +78,6 @@
             flex-direction: column;
             align-items: center;
             color: white;
-            padding: 10px;
         }
 
         .boosts-button .icon {
@@ -200,6 +205,15 @@
             }
         }
 
+        /* Progress bar for energy at bottom left */
+        .energy-progress {
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+            font-size: 1.2rem;
+            color: white;
+            z-index: 10;
+        }
     </style>
 </head>
 <body>
